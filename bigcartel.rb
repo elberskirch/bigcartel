@@ -2,6 +2,17 @@
 require "csv"
 
 module BigCartelCsvParser
+   class OrderItem
+      attr_accessor :product_name
+      attr_accessor :product_option_name
+      attr_accessor :quantity
+      attr_accessor :price
+      attr_accessor :total
+      
+      def initialize(item_hash)
+      end
+   end
+
    class Order
       attr_accessor :number
       attr_accessor :buyer_name
@@ -53,7 +64,29 @@ module BigCartelCsvParser
          @order_total_discount = order_hash[:total_discount]
          @order_discount_count = order_hash[:discount_count]
          @order_note = order_hash[:note]
- 
+      end
+      
+      # Parse csv strings as the following
+      #
+      # product_name:IT'S THE LIMIT FANZINE|product_option_name:|quantity:1|
+      # price:1.5|total:1.5;product_name:WHEN YOU’RE OUT THERE FANZINE|
+      # product_option_name:|quantity:1|price:1.5|total:1.5
+      def parse_items
+         item_array = []
+         items = CSV.parse_line(@order_items, :col_sep => ";")
+         puts items.inspect
+         items.each do |item|
+            option_hash = {}
+            options = CSV.parse_line(item, :col_sep => "|")
+            puts options.inspect
+            options.each { |option|
+               key, value = option.split(":")
+               option_hash[key.to_sym] = value
+            }
+            puts option_hash.inspect
+            item_array.push(OrderItem.new(option_hash))
+         end
+         item_array
       end
    end
 
