@@ -10,6 +10,11 @@ module BigCartelCsvParser
       attr_accessor :total
       
       def initialize(item_hash)
+         @product_name = item_hash[:product_name]
+         @product_option_name = item_hash[:product_option_name]
+         @quantity = item_hash[:quantity]
+         @price = item_hash[:price]
+         @total = item_hash[:total]
       end
    end
 
@@ -64,6 +69,10 @@ module BigCartelCsvParser
          @order_total_discount = order_hash[:total_discount]
          @order_discount_count = order_hash[:discount_count]
          @order_note = order_hash[:note]
+         #@order_items = parse_items
+
+         puts "Order #{@number}"
+         @order_items = parse_items
       end
       
       # Parse csv strings as the following
@@ -78,15 +87,28 @@ module BigCartelCsvParser
          items.each do |item|
             option_hash = {}
             options = CSV.parse_line(item, :col_sep => "|")
-            puts options.inspect
+            #puts "options.inspect"
+            #puts options.inspect
             options.each { |option|
                key, value = option.split(":")
                option_hash[key.to_sym] = value
             }
+            puts "option_hash.inspect"
             puts option_hash.inspect
             item_array.push(OrderItem.new(option_hash))
          end
          item_array
+      end
+
+      # returns an OrderItem if condition is met
+      def contains_item(name)
+         result = nil
+         @order_items.each { |item|
+            if item.product_name =~ /#{name}.*/
+               result = item
+            end
+          }
+          result
       end
    end
 
@@ -114,8 +136,8 @@ module BigCartelCsvParser
 end # module
 
 class Accountant
-   def initialize()
-
+   def initialize(orders)
+      
    end
 
    def work
